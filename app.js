@@ -42,25 +42,37 @@ const processMan = processAndSplitImage(path.join(__dirname, 'man.jpg'), 'man-sm
 // Process and split "anim.jpg"
 const processAnim = processAndSplitImage(path.join(__dirname, 'anim.jpg'), 'anim-small', in7, in5);
 
+//not a reusabale function is just for this situation to swap the second path with the third to shuffle the images in the canvas
+function swapImagesPaths(imagesPaths) {
+  const temp=imagesPaths[3];
+  imagesPaths[3]=imagesPaths[1];
+  imagesPaths[1]=temp;
+}
+
 // Wait for both promises to resolve
 Promise.all([processMan, processAnim])
   .then(async (outputPaths) => {
     // Flatten the array of output paths
     const imagePaths = outputPaths.flat();
 
+    swapImagesPaths(imagePaths)
+
     // Load images into canvas
     const canvas = createCanvas(in7 * 2, in5);
     const ctx = canvas.getContext('2d');
 
+    const halfWidth = Math.floor(in7 / 2);
+
     const loadAndDrawImages = async () => {
       for (let i = 0; i < imagePaths.length; i++) {
         const imagePath = imagePaths[i];
+        
 
         try {
           const buffer = await fs.readFile(imagePath);
           const base64 = buffer.toString('base64');
           const img = await loadImage(`data:image/jpeg;base64,${base64}`);
-          ctx.drawImage(img, 0, i * in5, in7, in5);
+          ctx.drawImage(img, i * halfWidth, 0, halfWidth, in5);
         } catch (loadErr) {
           console.error(`Error loading image from ${imagePath}:`, loadErr);
           throw loadErr; // Propagate the error
